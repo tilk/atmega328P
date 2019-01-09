@@ -113,8 +113,7 @@ static void vBlinkLed(void* pvParameters)
 static void vSerial(void* pvParameters)
 {
     uart_init();
-    stdout = &uart_output;
-    stdin = &uart_input;
+    stdin = stdout = stderr = &uart_file;
 
     char input;
 

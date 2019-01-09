@@ -2,6 +2,7 @@
 #include "task.h"
 #include <avr/io.h>
 #include <stdio.h>
+#include "uart.h"
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
@@ -10,8 +11,12 @@
 #endif
 #include <util/setbaud.h>
 
+int uart_transmit(char c, FILE *stream);
+int uart_receive(FILE *stream);
 
-void uart_init(void) {
+FILE uart_file = FDEV_SETUP_STREAM(uart_transmit, uart_receive, _FDEV_SETUP_RW);
+
+void uart_init() {
   UBRR0H = UBRRH_VALUE;
   UBRR0L = UBRRL_VALUE;
 #if USE_2X
@@ -23,15 +28,13 @@ void uart_init(void) {
   UCSR0B = _BV(RXEN0) | _BV(TXEN0); /* Enable RX and TX */
 }
 
-void uart_putchar(char c, FILE *stream) {
-  if (c == '\n') {
-    uart_putchar('\r', stream);
-  }
+int uart_transmit(char c, FILE *stream) {
   while (!(UCSR0A & _BV(UDRE0))) taskYIELD();
   UDR0 = c;
+  return 0;
 }
 
-char uart_getchar(FILE *stream) {
+int uart_receive(FILE *stream) {
   while (!(UCSR0A & _BV(RXC0))) taskYIELD();
   return UDR0;
 }
