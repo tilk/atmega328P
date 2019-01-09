@@ -1,71 +1,29 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
-    All rights reserved
-
-    VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
-
-    This file is part of the FreeRTOS distribution.
-
-    FreeRTOS is free software; you can redistribute it and/or modify it under
-    the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
-
-	***************************************************************************
-    >>!   NOTE: The modification to the GPL is included to allow you to     !<<
-    >>!   distribute a combined work that includes FreeRTOS without being   !<<
-    >>!   obliged to provide the source code for proprietary components     !<<
-    >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
-
-    FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
-    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-    FOR A PARTICULAR PURPOSE.  Full license text is available on the following
-    link: http://www.freertos.org/a00114.html
-
-    ***************************************************************************
-     *                                                                       *
-     *    FreeRTOS provides completely free yet professionally developed,    *
-     *    robust, strictly quality controlled, supported, and cross          *
-     *    platform software that is more than just the market leader, it     *
-     *    is the industry's de facto standard.                               *
-     *                                                                       *
-     *    Help yourself get started quickly while simultaneously helping     *
-     *    to support the FreeRTOS project by purchasing a FreeRTOS           *
-     *    tutorial book, reference manual, or both:                          *
-     *    http://www.FreeRTOS.org/Documentation                              *
-     *                                                                       *
-    ***************************************************************************
-
-    http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
-
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
-
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
-
-    http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
-    including FreeRTOS+Trace - an indispensable productivity tool, a DOS
-    compatible FAT file system, and our tiny thread aware UDP/IP stack.
-
-    http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
-    Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
-
-    http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
-    Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
-    licenses offer ticketed support, indemnification and commercial middleware.
-
-    http://www.SafeRTOS.com - High Integrity Systems also provide a safety
-    engineered and independently SIL3 certified version for use in safety and
-    mission critical applications that require provable dependability.
-
-    1 tab == 4 spaces!
-*/
+ * FreeRTOS Kernel V10.1.1
+ * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://www.FreeRTOS.org
+ * http://aws.amazon.com/freertos
+ *
+ * 1 tab == 4 spaces!
+ */
 
 /*-----------------------------------------------------------
  * Implementation of functions defined in portable.h for the SH2A port.
@@ -84,12 +42,16 @@
 value is for all interrupts to be enabled. */
 #define portINITIAL_SR				( 0UL )
 
-/* Dimensions the array into which the floating point context is saved.  
+/* Dimensions the array into which the floating point context is saved.
 Allocate enough space for FPR0 to FPR15, FPUL and FPSCR, each of which is 4
 bytes big.  If this number is changed then the 72 in portasm.src also needs
 changing. */
 #define portFLOP_REGISTERS_TO_STORE	( 18 )
 #define portFLOP_STORAGE_SIZE 		( portFLOP_REGISTERS_TO_STORE * 4 )
+
+#if( configSUPPORT_DYNAMIC_ALLOCATION == 0 )
+	#error configSUPPORT_DYNAMIC_ALLOCATION must be 1 to use this port.
+#endif
 
 /*-----------------------------------------------------------*/
 
@@ -110,8 +72,8 @@ extern uint32_t ulPortGetGBR( void );
 
 /*-----------------------------------------------------------*/
 
-/* 
- * See header file for description. 
+/*
+ * See header file for description.
  */
 StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters )
 {
@@ -124,17 +86,17 @@ StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t px
 	pxTopOfStack--;
 
 	/* SR. */
-	*pxTopOfStack = portINITIAL_SR; 
+	*pxTopOfStack = portINITIAL_SR;
 	pxTopOfStack--;
-	
+
 	/* PC. */
 	*pxTopOfStack = ( uint32_t ) pxCode;
 	pxTopOfStack--;
-	
+
 	/* PR. */
 	*pxTopOfStack = 15;
 	pxTopOfStack--;
-	
+
 	/* 14. */
 	*pxTopOfStack = 14;
 	pxTopOfStack--;
@@ -190,22 +152,22 @@ StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t px
 	/* R1. */
 	*pxTopOfStack = 1;
 	pxTopOfStack--;
-	
+
 	/* R0 */
 	*pxTopOfStack = 0;
 	pxTopOfStack--;
-	
+
 	/* MACL. */
 	*pxTopOfStack = 16;
 	pxTopOfStack--;
-	
+
 	/* MACH. */
 	*pxTopOfStack = 17;
 	pxTopOfStack--;
-	
+
 	/* GBR. */
 	*pxTopOfStack = ulPortGetGBR();
-	
+
 	/* GBR = global base register.
 	   VBR = vector base register.
 	   TBR = jump table base register.
@@ -220,7 +182,7 @@ BaseType_t xPortStartScheduler( void )
 extern void vApplicationSetupTimerInterrupt( void );
 
 	/* Call an application function to set up the timer that will generate the
-	tick interrupt.  This way the application can decide which peripheral to 
+	tick interrupt.  This way the application can decide which peripheral to
 	use.  A demo application is provided to show a suitable example. */
 	vApplicationSetupTimerInterrupt();
 
@@ -252,11 +214,11 @@ int32_t lInterruptMask;
 
 	/* taskYIELD() can only be called from a task, not an interrupt, so the
 	current interrupt mask can only be 0 or portKERNEL_INTERRUPT_PRIORITY and
-	the mask can be set without risk of accidentally lowering the mask value. */	
+	the mask can be set without risk of accidentally lowering the mask value. */
 	set_imask( portKERNEL_INTERRUPT_PRIORITY );
-	
+
 	trapa( portYIELD_TRAP_NO );
-	
+
 	/* Restore the interrupt mask to whatever it was previously (when the
 	function was entered). */
 	set_imask( ( int ) lInterruptMask );
@@ -282,26 +244,26 @@ extern void * volatile pxCurrentTCB;
 
 	/* Allocate a buffer large enough to hold all the flop registers. */
 	pulFlopBuffer = ( uint32_t * ) pvPortMalloc( portFLOP_STORAGE_SIZE );
-	
+
 	if( pulFlopBuffer != NULL )
 	{
 		/* Start with the registers in a benign state. */
 		memset( ( void * ) pulFlopBuffer, 0x00, portFLOP_STORAGE_SIZE );
-		
+
 		/* The first thing to get saved in the buffer is the FPSCR value -
 		initialise this to the current FPSCR value. */
 		*pulFlopBuffer = get_fpscr();
-		
-		/* Use the task tag to point to the flop buffer.  Pass pointer to just 
+
+		/* Use the task tag to point to the flop buffer.  Pass pointer to just
 		above the buffer because the flop save routine uses a pre-decrement. */
-		vTaskSetApplicationTaskTag( xTask, ( void * ) ( pulFlopBuffer + portFLOP_REGISTERS_TO_STORE ) );		
+		vTaskSetApplicationTaskTag( xTask, ( void * ) ( pulFlopBuffer + portFLOP_REGISTERS_TO_STORE ) );
 		xReturn = pdPASS;
 	}
 	else
 	{
 		xReturn = pdFAIL;
 	}
-	
+
 	return xReturn;
 }
 /*-----------------------------------------------------------*/
