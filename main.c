@@ -15,9 +15,9 @@
  * Private macro definitions.
  ******************************************************************************/
 
-#define mainLED_TASK_PRIORITY   (tskIDLE_PRIORITY)
+#define mainLED_TASK_PRIORITY   2
 
-#define mainSERIAL_TASK_PRIORITY 2
+#define mainSERIAL_TASK_PRIORITY 1
 
 /******************************************************************************
  * Private function prototypes.
@@ -47,7 +47,7 @@ int main(void)
     xTaskCreate
         (
          vBlinkLed,
-         (signed char*)"blink",
+         "blink",
          configMINIMAL_STACK_SIZE,
          NULL,
          mainLED_TASK_PRIORITY,
@@ -57,7 +57,7 @@ int main(void)
     xTaskCreate
         (
          vSerial,
-         (signed char*)"serial",
+         "serial",
          configMINIMAL_STACK_SIZE,
          NULL,
          mainSERIAL_TASK_PRIORITY,
@@ -98,7 +98,7 @@ static void vBlinkLed(void* pvParameters)
     for ( ;; )
     {
         PORTB ^= _BV(PB5);
-        vTaskDelay(500);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }
 
@@ -120,10 +120,8 @@ static void vSerial(void* pvParameters)
 
     for ( ;; )
     {
-        printf("hello\n");
-        //puts("Hello World");
-        //input = getchar();
-        //printf("You wrote %c\n", input); 
-        vTaskDelay(1000);
+        puts("Hello World\r\n");
+        input = getchar();
+        printf("You wrote %c\r\n", input); 
     }
 }
