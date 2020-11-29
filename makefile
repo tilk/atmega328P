@@ -38,8 +38,9 @@ TARGET = freertos
 OPT = s
 
 # List C source files here. (C dependencies are automatically generated.)
-SOURCE_DIR = FreeRTOS/Source
-PORT_DIR = FreeRTOS/Source/portable/GCC/ATMega328
+REPO_ROOT_DIR = .
+SOURCE_DIR = $(REPO_ROOT_DIR)/FreeRTOS/Source
+PORT_DIR = $(REPO_ROOT_DIR)/FreeRTOS/Source/portable/GCC/ATMega328
 
 ARDUINO_LIB = /usr/share/arduino/lib
 
@@ -51,7 +52,7 @@ $(SOURCE_DIR)/list.c \
 $(SOURCE_DIR)/croutine.c \
 $(SOURCE_DIR)/portable/MemMang/heap_1.c \
 $(PORT_DIR)/port.c \
-uart.c\
+$(REPO_ROOT_DIR)/uart.c\
 
 # Optional compiler flags.
 #  -g:        generate debugging information (for GDB, or for COFF conversion)
@@ -65,7 +66,7 @@ DEBUG_LEVEL=-g
 WARNINGS=-Wall -Wextra -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wsign-compare \
 		-Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wunused
 
-CFLAGS = -D F_CPU=16000000 -I. -IFreeRTOS/Source/include -IFreeRTOS/Source/portable/GCC/ATMega328 -I/usr/share/arduino/hardware/arduino/cores/arduino -I/usr/share/arduino/hardware/arduino/variants/eightanaloginputs\
+CFLAGS = -D F_CPU=16000000 -I$(REPO_ROOT_DIR) -I$(SOURCE_DIR)/include -I$(PORT_DIR) -I/usr/share/arduino/hardware/arduino/cores/arduino -I/usr/share/arduino/hardware/arduino/variants/eightanaloginputs\
 $(DEBUG_LEVEL) -O$(OPT) \
 -fsigned-char -funsigned-bitfields -fpack-struct -fshort-enums \
 $(WARNINGS) \
